@@ -166,12 +166,15 @@ verify_write_access <- function(con, write_schema, add = NULL) {
   write_schema <- paste(write_schema, collapse = ".")
   tablename <- paste(c(sample(letters, 12, replace = TRUE), "_test_table"), collapse = "")
   tablename <- paste(write_schema, tablename, sep = ".")
-  # spec_cdm_table is global internal package data (a list of dataframes) used here just to test write access
-  DBI::dbWriteTable(con, DBI::SQL(tablename), spec_cdm_table[[1]][1:4,])
+  # spec_cdm_table is global internal package data (a list of dataframes) used here just to test write access. schema column is excluded.
+  df <- spec_cdm_table[[1]][c(1,3:4),]
+  DBI::dbWriteTable(con, DBI::SQL(tablename), df)
   to_compare <- DBI::dbReadTable(con, DBI::SQL(tablename))
   DBI::dbRemoveTable(con, DBI::SQL(tablename))
 
-  if(!dplyr::all_equal(spec_cdm_table[[1]][1:4,], to_compare)) {
+  if (is(con, "DatabaseConnectorConnection")) names(df) <- tolower(names(df)) # TODO remove this
+
+  if(!dplyr::all_equal(df, to_compare)) {
     msg <- paste("Write access to schema", write_schema, "could not be verified.")
     if (is.null(add)) rlang::abort(msg) else add$push(msg)
   }
