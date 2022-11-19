@@ -166,15 +166,13 @@ verify_write_access <- function(con, write_schema, add = NULL) {
   write_schema <- paste(write_schema, collapse = ".")
   tablename <- paste(c(sample(letters, 12, replace = TRUE), "_test_table"), collapse = "")
   tablename <- paste(write_schema, tablename, sep = ".")
-  # spec_cdm_table is global internal package data (a list of dataframes) used here just to test write access. schema column is excluded.
-  df <- spec_cdm_table[[1]][c(1,3:4),]
-  DBI::dbWriteTable(con, DBI::SQL(tablename), df)
-  to_compare <- DBI::dbReadTable(con, DBI::SQL(tablename))
+
+  df1 <- data.frame(chr = "a", lgl = TRUE, int = 1L)
+  DBI::dbWriteTable(con, DBI::SQL(tablename), df1)
+  df2 <- DBI::dbReadTable(con, DBI::SQL(tablename))
   DBI::dbRemoveTable(con, DBI::SQL(tablename))
 
-  if (is(con, "DatabaseConnectorConnection")) names(df) <- tolower(names(df)) # TODO remove this
-
-  if(!dplyr::all_equal(df, to_compare)) {
+  if(!dplyr::all_equal(df1, df2)) {
     msg <- paste("Write access to schema", write_schema, "could not be verified.")
     if (is.null(add)) rlang::abort(msg) else add$push(msg)
   }
@@ -237,8 +235,8 @@ tbl_group <- function(group) {
 #' dbDisconnect(con)
 #' }
 eunomia_dir <- function(exdir = NULL) {
-  if (utils::packageVersion("duckdb") != "0.5.1")
-    rlang::abort("duckdb version 0.5.1 is required to use eunomia_dir(). \nPlease install the latest version of duckdb (0.5.1).")
+  if (substr(utils::packageVersion("duckdb"), 1, 3) != "0.5")
+    rlang::abort("duckdb version 0.5 is required to use eunomia_dir(). \nPlease install the latest version of duckdb (0.5.1).")
 
   if (is.null(exdir)) exdir <- file.path(tempdir(TRUE), paste(sample(letters, 8, replace = TRUE), collapse = ""))
   file <- xzfile(system.file("duckdb", "cdm.duckdb.tar.xz", package = "CDMConnector"), open = "rb")
