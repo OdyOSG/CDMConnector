@@ -17,7 +17,7 @@ test_that("cdm reference works locally", {
   expect_true(version(cdm) %in% c("5.3", "5.4"))
   expect_s3_class(snapshot(cdm), "cdm_snapshot")
 
-  expect_true(is.null(CDMConnector:::verify_write_access(con, write_schema = "scratch")))
+  expect_true(is.null(verify_write_access(con, write_schema = "scratch")))
 
   expect_true("concept" %in% names(cdm))
   expect_s3_class(collect(head(cdm$concept)), "data.frame")
@@ -37,6 +37,8 @@ test_that("cdm reference works on postgres", {
                         password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD"))
 
   expect_true(is.character(listTables(con, schema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"))))
+
+  expect_null(verify_write_access(con, Sys.getenv("CDM5_POSTGRESQL_SCRATCH_SCHEMA")))
 
   cdm <- cdm_from_con(con, cdm_schema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"), cdm_tables = tbl_group("vocab"))
 
@@ -111,6 +113,9 @@ test_that("cdm reference works on redshift", {
                         user     = Sys.getenv("CDM5_REDSHIFT_USER"),
                         password = Sys.getenv("CDM5_REDSHIFT_PASSWORD"))
 
+
+  expect_null(verify_write_access(con, Sys.getenv("CDM5_REDSHIFT_SCRATCH_SCHEMA")))
+
   expect_true(is.character(listTables(con, schema = Sys.getenv("CDM5_REDSHIFT_CDM_SCHEMA"))))
 
   cdm <- cdm_from_con(con, cdm_schema = Sys.getenv("CDM5_REDSHIFT_CDM_SCHEMA"), cdm_tables = tbl_group("default"))
@@ -122,15 +127,17 @@ test_that("cdm reference works on redshift", {
   expect_s3_class(collect(head(cdm$concept)), "data.frame")
 
   expect_equal(dbms(con), "redshift")
-  expect_equal(dbms(cdm), "redshift")
 
   DBI::dbDisconnect(con)
 })
 
 
 test_that("cdm reference works on duckdb", {
+  skip_if(substr(utils::packageVersion("duckdb"), 1, 3) != "0.5")
 
   con <- DBI::dbConnect(duckdb::duckdb(), dbdir = eunomia_dir())
+
+  expect_null(verify_write_access(con, "main"))
 
   expect_true(is.character(listTables(con)))
 
@@ -147,6 +154,8 @@ test_that("cdm reference works on duckdb", {
 })
 
 test_that("inclusion of cohort tables", {
+  skip_if(substr(utils::packageVersion("duckdb"), 1, 3) != "0.5")
+
   con <- DBI::dbConnect(duckdb::duckdb(), dbdir = eunomia_dir())
 
   cohort <- dplyr::tibble(cohort_id = 1L,
@@ -174,6 +183,8 @@ test_that("inclusion of cohort tables", {
 })
 
 test_that("collect a cdm", {
+  skip_if(substr(utils::packageVersion("duckdb"), 1, 3) != "0.5")
+
   con <- DBI::dbConnect(duckdb::duckdb(), dbdir = eunomia_dir())
   cdm <- cdm_from_con(con)
 
@@ -193,6 +204,8 @@ test_that("collect a cdm", {
 
 
 test_that("stow and cdm_from_files works", {
+  skip_if(substr(utils::packageVersion("duckdb"), 1, 3) != "0.5")
+
   save_path <- file.path(tempdir(), paste0("tmp_", paste(sample(letters, 10, replace = TRUE), collapse = "")))
   dir.create(save_path)
   cdm_tables <- c("person", "observation_period", "cdm_source", "vocabulary")

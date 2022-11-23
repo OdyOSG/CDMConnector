@@ -11,13 +11,13 @@
 #'   \item{tbl_group("clinical")}{the clinical CDM tables}
 #' }
 #' @param cohort_tables A character vector listing the cohort table names to be included in the CDM object.
-#' @param cdm_version The version of the OMOP CDM: "5.3", "5.4", "auto" (default).
+#' @param cdm_version The version of the OMOP CDM: "5.3" (default), "5.4", "auto".
 #' "auto" attempts to automatically determine the cdm version using heuristics.
 #' Cohort tables must be in the write_schema.
 #' @return A list of dplyr database table references pointing to CDM tables
 #' @importFrom dplyr all_of matches starts_with ends_with contains
 #' @export
-cdm_from_con <- function(con, cdm_schema = NULL, cdm_tables = tbl_group("default"), write_schema = NULL, cohort_tables = NULL, cdm_version = "auto") {
+cdm_from_con <- function(con, cdm_schema = NULL, cdm_tables = tbl_group("default"), write_schema = NULL, cohort_tables = NULL, cdm_version = "5.3") {
   checkmate::assert_class(con, "DBIConnection")
   checkmate::assert_true(DBI::dbIsValid(con))
   checkmate::assert_character(cdm_schema, null.ok = TRUE, min.len = 1, max.len = 2)
@@ -69,6 +69,9 @@ cdm_from_con <- function(con, cdm_schema = NULL, cdm_tables = tbl_group("default
 detect_cdm_version <- function(con, cdm_schema = NULL) {
 
   cdm_tables <- c("visit_occurrence", "cdm_source", "procedure_occurrence")
+  if (!all(cdm_tables %in% listTables(con, schema = cdm_schema))) {
+    rlang::abort(paste0("The ", paste(cdm_tables, collapse = ", "), " tables are require for auto-detection of cdm version."))
+  }
   if (dbms(con) == "duckdb") {
     cdm <- purrr::map(cdm_tables, ~dplyr::tbl(con, paste(c(cdm_schema, .), collapse = ".")))
   } else if (is.null(cdm_schema)) {
@@ -166,9 +169,8 @@ verify_write_access <- function(con, write_schema, add = NULL) {
 
   write_schema <- paste(write_schema, collapse = ".")
   tablename <- paste(c(sample(letters, 12, replace = TRUE), "_test_table"), collapse = "")
-  tablename <- glue::glue_sql(write_schema, tablename)
-
-  df1 <- data.frame(chr = "a", lgl = TRUE, int = 1L, dbl = 1)
+  tablename <- paste(write_schema, tablename, sep = ".")
+  df1 <- data.frame(chr = "a", lgl = TRUE, int = 1L)
   DBI::dbWriteTable(con, DBI::SQL(tablename), df1)
   df2 <- DBI::dbReadTable(con, DBI::SQL(tablename))
   DBI::dbRemoveTable(con, DBI::SQL(tablename))
@@ -241,8 +243,8 @@ tbl_group <- function(group) {
 #' dbDisconnect(con)
 #' }
 eunomia_dir <- function(exdir = NULL) {
-  if (utils::packageVersion("duckdb") != "0.5.1")
-    rlang::abort("duckdb version 0.5.1 is required to use eunomia_dir(). \nPlease install the latest version of duckdb (0.5.1).")
+  if (substr(utils::packageVersion("duckdb"), 1, 3) != "0.5")
+    rlang::abort("duckdb version 0.5 is required to use eunomia_dir(). \nPlease install the latest version of duckdb (0.5.1).")
 
   if (is.null(exdir)) exdir <- file.path(tempdir(TRUE), paste(sample(letters, 8, replace = TRUE), collapse = ""))
   file <- xzfile(system.file("duckdb", "cdm.duckdb.tar.xz", package = "CDMConnector"), open = "rb")
