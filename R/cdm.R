@@ -170,9 +170,12 @@ verify_write_access <- function(con, write_schema, add = NULL) {
   write_schema <- paste(write_schema, collapse = ".")
   tablename <- paste(c(sample(letters, 12, replace = TRUE), "_test_table"), collapse = "")
   tablename <- paste(write_schema, tablename, sep = ".")
-  df1 <- data.frame(chr = "a", lgl = TRUE, int = 1L)
+
+  df1 <- data.frame(chr_col = "a", lgl_col = TRUE, int_col = 1L)
   DBI::dbWriteTable(con, DBI::SQL(tablename), df1)
-  df2 <- DBI::dbReadTable(con, DBI::SQL(tablename))
+  withr::with_options(list(databaseConnectorIntegerAsNumeric = FALSE), {
+    df2 <- DBI::dbReadTable(con, DBI::SQL(tablename))
+  })
   DBI::dbRemoveTable(con, DBI::SQL(tablename))
 
   if(is(con, "DatabaseConnectorConnection") && isTRUE(dplyr::all_equal(df1[,-2], df2[,-2]))) {
