@@ -1,3 +1,11 @@
+# CDMConnector 0.3.0
+
+* Add computePermanent and appendPermanent function
+* Add readCohortSet
+* Add generateCohortSet
+
+Released Nov 24, 2022
+
 # CDMConnector 0.2.0
 
 * Add support for OMOP v5.3 and v5.4
