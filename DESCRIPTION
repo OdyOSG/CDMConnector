@@ -42,6 +42,9 @@ Suggests:
     SqlRender,
     testthat (>= 3.0.0),
     DatabaseConnector,
-    lubridate
+    lubridate,
+    CirceR (>= 1.1.1)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+Remotes:  
+    github::OHDSI/CirceR

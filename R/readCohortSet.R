@@ -6,13 +6,15 @@
 #' A "cohort set" is a collection of cohort definions. In R this is stored in a dataframe with cohortId, cohortName, cohort, and sql columns.
 #' On disk this is stored as a folder with a CohortsToCreate.csv file and one or more json files.
 #' If the CohortsToCreate.csv file is missing then all of the json files in the folder will be used,
-#' cohortIds will be automatically assigned in alphebetical order, and cohortNames will match the file names.
+#' cohortIds will be automatically assigned in alphabetical order, and cohortNames will match the file names.
 #'
 #' @param path The path to a folder containing a csv file named CohortsToCreate.csv with columns cohortId, cohortName, and jsonPath.
 #'
 #' @export
 readCohortSet <- function(path) {
-  # cohortsToCreate <- read.csv(file.path(path, "CohortsToCreate.csv"), stringsAsFactors = FALSE) %>%
+  if (!rlang::is_installed("CirceR")) {
+    rlang::abort("CirceR is required to use `readCohortSet`\nInstall it with `devtools::install_github('OHDSI/CirceR')`")
+  }
 
   if (file.exists(file.path(path, "CohortsToCreate.csv"))) {
     cohortsToCreate <- readr::read_csv(file.path(path, "CohortsToCreate.csv"), show_col_types = FALSE) %>%
