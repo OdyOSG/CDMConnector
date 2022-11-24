@@ -163,7 +163,7 @@ print.cdm_reference <- function(x, ...) {
 # write_schema = schema with write access
 # add = checkmate collection
 verify_write_access <- function(con, write_schema, add = NULL) {
-  checkmate::assert_character(write_schema, len = 1, min.chars = 1)
+  checkmate::assert_character(write_schema, min.len = 1, max.len = 2, min.chars = 1)
   checkmate::assert_class(add, "AssertCollection", null.ok = TRUE)
   checkmate::assert_true(DBI::dbIsValid(con))
 
@@ -171,19 +171,24 @@ verify_write_access <- function(con, write_schema, add = NULL) {
   tablename <- paste(c(sample(letters, 12, replace = TRUE), "_test_table"), collapse = "")
   tablename <- paste(write_schema, tablename, sep = ".")
 
-  df1 <- data.frame(chr_col = "a", lgl_col = TRUE, int_col = 1L)
+  df1 <- data.frame(chr_col = "a", numeric_col = 1, int_col = 1L)
   DBI::dbWriteTable(con, DBI::SQL(tablename), df1)
   withr::with_options(list(databaseConnectorIntegerAsNumeric = FALSE), {
     df2 <- DBI::dbReadTable(con, DBI::SQL(tablename))
   })
   DBI::dbRemoveTable(con, DBI::SQL(tablename))
 
-  if(is(con, "DatabaseConnectorConnection") && isTRUE(dplyr::all_equal(df1[,-2], df2[,-2]))) {
-    rlang::inform("Write access verified. Note TRUE/FALSE values and upper case table names are not supported by `DatabaseConnector`.",
-                  .frequency = "once", .frequency_id = "DatabaseConnectorBooleans")
-    if (is.null(add)) rlang::abort(msg) else add$push(msg)
+  # if(is(con, "DatabaseConnectorConnection") && isTRUE(dplyr::all_equal(df1[,-2], df2[,-2]))) {
+  #   rlang::inform("Write access verified. Note TRUE/FALSE values and upper case table names are not supported by `DatabaseConnector`.",
+  #                 .frequency = "once", .frequency_id = "DatabaseConnectorBooleans")
+  #   if (is.null(add)) rlang::abort(msg) else add$push(msg)
+  #
+  # } else if(!isTRUE(dplyr::all_equal(df1, df2))) {
+  #   msg <- paste("Write access to schema", write_schema, "could not be verified.")
+  #   if (is.null(add)) rlang::abort(msg) else add$push(msg)
+  # }
 
-  } else if(!isTRUE(dplyr::all_equal(df1, df2))) {
+  if(!isTRUE(dplyr::all_equal(df1, df2))) {
     msg <- paste("Write access to schema", write_schema, "could not be verified.")
     if (is.null(add)) rlang::abort(msg) else add$push(msg)
   }
