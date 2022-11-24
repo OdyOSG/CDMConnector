@@ -10,7 +10,7 @@ test_that("cohort generation works on duckdb", {
 
   cdm <- cdm_from_con(con,
                       cdm_schema = cdm_schema,
-                      cdm_tables = c(tbl_group("default"), -visit_detail), # visit_detail is missing in sql server database
+                      cdm_tables = c(tbl_group("default")),
                       write_schema = write_schema)
 
   inst_dir <- system.file(package = "CDMConnector", mustWork = TRUE)

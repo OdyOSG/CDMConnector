@@ -64,7 +64,7 @@ addCohortTable <- function(cdm,
   purrr::walk(sqlStatements, ~suppressMessages(DBI::dbExecute(attr(cdm, "dbcon"), .x, immediate = TRUE)))
 
   if (dbms(con) == "duckdb") {
-    cdm[[name]] <- dplyr::tbl(con, paste(c(write_schema, name), collapse = "."))
+    cdm[[name]] <- dplyr::tbl(con, paste(c(schema, name), collapse = "."))
   } else if (length(schema) == 2) {
     cdm[[name]] <- dplyr::tbl(con, dbplyr::in_catalog(schema[[1]], schema[[2]], name))
   } else if (length(schema) == 1) {

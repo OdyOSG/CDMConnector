@@ -250,7 +250,6 @@ library(dplyr, warn.conflicts = FALSE)
 
 test_that("DatabaseConnector cdm reference works on local postgres", {
   skip_if(Sys.getenv("LOCAL_POSTGRESQL_USER") == "")
-  skip("DatabaseConnector does not preserve logical datatypes")
 
   con <- DBI::dbConnect(DatabaseConnector::DatabaseConnectorDriver(),
                         dbms     = "postgresql",
@@ -277,10 +276,9 @@ test_that("DatabaseConnector cdm reference works on local postgres", {
   DBI::dbDisconnect(con)
 })
 
-
 test_that("DatabaseConnector cdm reference works on postgres", {
   skip_if(Sys.getenv("CDM5_POSTGRESQL_USER") == "")
-  skip("DatabaseConnector does not preserve logical datatypes")
+  # skip("DatabaseConnector does not preserve logical datatypes")
 
   con <- DBI::dbConnect(DatabaseConnector::DatabaseConnectorDriver(),
                         dbms     = "postgresql",
@@ -310,7 +308,7 @@ test_that("DatabaseConnector cdm reference works on postgres", {
 
 test_that("DatabaseConnector cdm reference works on redshift", {
   skip_if(Sys.getenv("CDM5_REDSHIFT_USER") == "")
-  skip("DatabaseConnector does not preserve logical datatypes")
+  # skip("DatabaseConnector does not preserve logical datatypes")
 
   con <- DBI::dbConnect(DatabaseConnector::DatabaseConnectorDriver(),
                         dbms     = "redshift",
