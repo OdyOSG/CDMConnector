@@ -10,8 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-
 #' Add a cohort table to a cdm object
 #'
 #' @description
@@ -33,6 +31,7 @@ addCohortTable <- function(cdm,
 
   checkmate::assertCharacter(schema, min.len = 1, max.len = 2, min.chars = 1, null.ok = FALSE)
   checkmate::assertCharacter(name, len = 1, min.chars = 1, null.ok = FALSE)
+  if (name != tolower(name)) rlang::abort("Cohort table names must be lowercase.")
 
   tables <- CDMConnector::listTables(con, schema = schema)
 
@@ -51,33 +50,29 @@ addCohortTable <- function(cdm,
       	cohort_end_date DATE
       );
   "
-
+  cohort_database_schema <- glue::glue_sql_collapse(DBI::dbQuoteIdentifier(con, attr(cdm, "write_schema")), sep = ".")
   sql <- SqlRender::render(sql = sql,
-                           cohort_database_schema = attr(cdm, "write_schema"),
+                           cohort_database_schema = cohort_database_schema,
                            cohort_table = name,
                            warnOnMissingParameters = TRUE
   )
 
-  sql <- SqlRender::translate(sql = sql, targetDialect = CDMConnector::dbms(attr(cdm, "dbcon")))
+  sql <- SqlRender::translate(sql = sql, targetDialect = CDMConnector::dbms(con))
 
   sqlStatements <- SqlRender::splitSql(sql)
 
-  DBI::dbWithTransaction(con, {
-    purrr::walk(sqlStatements, ~DBI::dbExecute(attr(cdm, "dbcon"), .x))
-  })
+  purrr::walk(sqlStatements, ~suppressMessages(DBI::dbExecute(attr(cdm, "dbcon"), .x, immediate = TRUE)))
 
-  if (length(schema) == 2) {
+  if (dbms(con) == "duckdb") {
+    cdm[[name]] <- dplyr::tbl(con, paste(c(write_schema, name), collapse = "."))
+  } else if (length(schema) == 2) {
     cdm[[name]] <- dplyr::tbl(con, dbplyr::in_catalog(schema[[1]], schema[[2]], name))
   } else if (length(schema) == 1) {
     cdm[[name]] <- dplyr::tbl(con, dbplyr::in_schema(schema, name))
-  } else {
-    cdm[[name]] <- dplyr::tbl(con, name)
   }
-  # cdm[[name]] <- dplyr::tbl(con, dbplyr::sql(paste(c(writeSchema, name), collapse = ".")))
+
   invisible(cdm)
 }
-
-
 
 #' Generate a set of cohorts
 #'
@@ -86,41 +81,51 @@ addCohortTable <- function(cdm,
 #' @importFrom generics generate
 #' @param cdm cdm reference object
 #'
-#' @param CohortDefinitionSet A cohort defefintion set dataframe
+#' @param CohortDefinitionSet A cohort definition set dataframe
 #'
 #' @returns cdm reference object with the added cohort table containing generated cohorts
 #'
 #' @export
-generate.CohortSet <- function(cdm,
+generateCohortSet <- function(cdm,
                               cohortDefinitionSet,
                               cohortTableName) {
 
-
   checkmate::assertDataFrame(cohortDefinitionSet, min.rows = 0, col.names = "named")
   checkmate::assertNames(colnames(cohortDefinitionSet), must.include = c("cohortId", "cohortName", "sql"))
-  checkmate::assert_character(attr(cdm, "write_schema"))
-
-
-
-  con <- attr(cdm, "dbcon")
-  writeSchema <- attr(cdm, "write_schema")
-
-  if (!(cohortTableName %in% CDMConnector::listTables(con, writeSchema))) {
-    cdm <- addCohortTable(cdm, name = cohortTableName)
-  }
+  checkmate::assert_character(attr(cdm, "write_schema"), min.chars = 1, min.len = 1, max.len = 2)
 
   if (nrow(cohortDefinitionSet) == 0) return(cdm)
 
-  cli::cli_progress_bar(total = 5, format = "Generating cohorts {cli::pb_bar} {pb_current}/{pb_total}")
+  con <- attr(cdm, "dbcon")
+
+  if (cohortTableName %in% CDMConnector::listTables(con, attr(cdm, "write_schema"))) {
+    ids <- as.numeric(dplyr::pull(cdm[[cohortTableName]], "cohort_definition_id"))
+    overlap <- dplyr::intersect(ids, cohortDefinitionSet$cohortId)
+    if (length(overlap) > 0) {
+      ids_chr <- paste(overlap, collapse = ", ")
+      rlang::abort(glue::glue("Cohort definition IDs {ids_chr} already exist in {cohortTableName} table."))
+      # TODO add overwrite option?
+    }
+  } else {
+    cdm <- addCohortTable(cdm, name = cohortTableName)
+  }
+
+  cli::cli_progress_bar(total = nrow(cohortDefinitionSet),
+                        format = "Generating cohorts {cli::pb_bar} {cli::pb_current}/{cli::pb_total}")
+
+  cdm_schema <- glue::glue_sql_collapse(DBI::dbQuoteIdentifier(con, attr(cdm, "cdm_schema")), sep = ".")
+  write_schema <- glue::glue_sql_collapse(DBI::dbQuoteIdentifier(con, attr(cdm, "write_schema")), sep = ".")
+  target_cohort_table <- glue::glue_sql(DBI::dbQuoteIdentifier(con, cohortTableName))
+
   for (i in 1:nrow(cohortDefinitionSet)) {
 
     sql <- cohortDefinitionSet$sql[i] %>%
       SqlRender::render(
-        cdm_database_schema = attr(cdm, "cdm_schema"),
-        vocabulary_database_schema = attr(cdm, "cdm_schema"),
-        target_database_schema = attr(cdm, "write_schema"),
-        results_database_schema = attr(cdm, "write_schema"),
-        target_cohort_table = cohortTableName,
+        cdm_database_schema = cdm_schema,
+        vocabulary_database_schema = cdm_schema,
+        target_database_schema = write_schema,
+        results_database_schema = write_schema,
+        target_cohort_table = target_cohort_table,
         target_cohort_id = cohortDefinitionSet$cohortId[i],
         warnOnMissingParameters = FALSE
       ) %>%
@@ -130,20 +135,19 @@ generate.CohortSet <- function(cdm,
       ) %>%
       SqlRender::splitSql()
 
-    DBI::dbWithTransaction(con, purrr::walk(sql, ~DBI::dbExecute(con, .x)))
+    purrr::walk(sql, ~DBI::dbExecute(con, .x, immediate = TRUE))
     cli::cli_progress_update()
   }
   cli::cli_progress_done()
 
-  if (!(cohortTableName %in% names(cdm))) {
-    if (length(schema) == 2) {
-      cdm[[cohortTableName]] <- dplyr::tbl(x$src$con, dbplyr::in_catalog(schema[[1]], schema[[2]], name))
-    } else if (length(schema) == 1) {
-      cdm[[cohortTableName]] <- dplyr::tbl(x$src$con, dbplyr::in_schema(schema, name))
-    } else {
-      cdm[[cohortTableName]] <- dplyr::tbl(x$src$con, name)
-    }
-  }
+  schema <- attr(cdm, "write_schema")
 
+  if (dbms(con) == "duckdb") {
+    cdm[[cohortTableName]] <- dplyr::tbl(con, paste(c(write_schema, cohortTableName), collapse = "."))
+  } else if (length(schema) == 2) {
+    cdm[[cohortTableName]] <- dplyr::tbl(con, dbplyr::in_catalog(schema[[1]], schema[[2]], cohortTableName))
+  } else if (length(schema) == 1) {
+    cdm[[cohortTableName]] <- dplyr::tbl(con, dbplyr::in_schema(schema, cohortTableName))
+  }
   return(cdm)
 }
