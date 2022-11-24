@@ -368,3 +368,10 @@ test_that("DatabaseConnector cdm reference works on sql server", {
   DBI::dbDisconnect(con)
 })
 
+test_that("autodetect cdm version works", {
+  skip_if(substr(utils::packageVersion("duckdb"), 1, 3) != "0.5")
+  con <- DBI::dbConnect(duckdb::duckdb(), dbdir = eunomia_dir())
+  cdm <- cdm_from_con(con, cdm_tables = tbl_group("default"), cdm_version = "auto")
+  expect_true(version(cdm) == c("5.3"))
+  DBI::dbDisconnect(con, shutdown = TRUE)
+})
