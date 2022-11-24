@@ -172,6 +172,7 @@ verify_write_access <- function(con, write_schema, add = NULL) {
   tablename <- paste(write_schema, tablename, sep = ".")
 
   df1 <- data.frame(chr_col = "a", numeric_col = 1, int_col = 1L)
+  # df1 <- data.frame(chr_col = "a", dbl_col = 1.0)
   DBI::dbWriteTable(con, DBI::SQL(tablename), df1)
   withr::with_options(list(databaseConnectorIntegerAsNumeric = FALSE), {
     df2 <- DBI::dbReadTable(con, DBI::SQL(tablename))
