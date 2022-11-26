@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+setGeneric("generate", function(cdm, x, ...) {stop("No existing generate method.")})
+
 #' Add a cohort table to a cdm object
 #'
 #' @description
@@ -18,8 +20,6 @@
 #' @param cdm A cdm reference created by CDMConnector. write_schema must be specified.
 #' @param name Name of the cohort table to be created.
 #' @param overwrite Should the cohort table be overwritten if it already exists? (TRUE or FALSE)
-#'
-#' @export
 addCohortTable <- function(cdm,
                            name = "cohort",
                            overwrite = FALSE) {
@@ -74,59 +74,60 @@ addCohortTable <- function(cdm,
   invisible(cdm)
 }
 
+
 #' Generate a set of cohorts
 #'
 #' @description
 #' This function generates a set of cohorts in the cohort table.
-#' @importFrom generics generate
 #' @param cdm cdm reference object
 #'
-#' @param CohortDefinitionSet A cohort definition set dataframe
+#' @param x A cohort definition set dataframe
+#' @param cohortTableName The name of the cohort table in the cdm. Defaults to 'cohort'.
 #'
 #' @returns cdm reference object with the added cohort table containing generated cohorts
 #'
 #' @export
-generateCohortSet <- function(cdm,
-                              cohortDefinitionSet,
-                              cohortTableName) {
+setMethod("generate", signature = signature("cdm_reference", "CohortSet"),
+  function(cdm, x, cohortTableName = "cohort", overwrite = FALSE) {
 
-  checkmate::assertDataFrame(cohortDefinitionSet, min.rows = 0, col.names = "named")
-  checkmate::assertNames(colnames(cohortDefinitionSet), must.include = c("cohortId", "cohortName", "sql"))
+  checkmate::assertDataFrame(x, min.rows = 0, col.names = "named")
+  checkmate::assertNames(colnames(x), must.include = c("cohortId", "cohortName", "sql"))
   checkmate::assert_character(attr(cdm, "write_schema"), min.chars = 1, min.len = 1, max.len = 2)
 
-  if (nrow(cohortDefinitionSet) == 0) return(cdm)
+  if (nrow(x) == 0) return(cdm)
 
   con <- attr(cdm, "dbcon")
 
-  if (cohortTableName %in% CDMConnector::listTables(con, attr(cdm, "write_schema"))) {
-    ids <- as.numeric(dplyr::pull(cdm[[cohortTableName]], "cohort_definition_id"))
-    overlap <- dplyr::intersect(ids, cohortDefinitionSet$cohortId)
-    if (length(overlap) > 0) {
-      ids_chr <- paste(overlap, collapse = ", ")
-      rlang::abort(glue::glue("Cohort definition IDs {ids_chr} already exist in {cohortTableName} table."))
-      # TODO add overwrite option?
-    }
+  if (cohortTableName %in% CDMConnector::listTables(con, attr(cdm, "write_schema")) && !overwrite) {
+    # ids <- as.numeric(dplyr::pull(cdm[[cohortTableName]], "cohort_definition_id"))
+    # overlap <- dplyr::intersect(ids, x$cohortId)
+    # if (length(overlap) > 0) {
+    #   ids_chr <- paste(overlap, collapse = ", ")
+    #   rlang::abort(glue::glue("Cohort definition IDs {ids_chr} already exist in {cohortTableName} table."))
+    #   # add overwrite option?
+    # }
+    rlang::abort(glue::glue("The cohort table {cohortTableName} already exists.\nSpecify overwrite = TRUE to overwrite it."))
   } else {
-    cdm <- addCohortTable(cdm, name = cohortTableName)
+    cdm <- addCohortTable(cdm, name = cohortTableName, overwrite = overwrite)
   }
 
-  cli::cli_progress_bar(total = nrow(cohortDefinitionSet),
+  cli::cli_progress_bar(total = nrow(x),
                         format = "Generating cohorts {cli::pb_bar} {cli::pb_current}/{cli::pb_total}")
 
   cdm_schema <- glue::glue_sql_collapse(DBI::dbQuoteIdentifier(con, attr(cdm, "cdm_schema")), sep = ".")
   write_schema <- glue::glue_sql_collapse(DBI::dbQuoteIdentifier(con, attr(cdm, "write_schema")), sep = ".")
   target_cohort_table <- glue::glue_sql(DBI::dbQuoteIdentifier(con, cohortTableName))
 
-  for (i in 1:nrow(cohortDefinitionSet)) {
+  for (i in 1:nrow(x)) {
 
-    sql <- cohortDefinitionSet$sql[i] %>%
+    sql <- x$sql[i] %>%
       SqlRender::render(
         cdm_database_schema = cdm_schema,
         vocabulary_database_schema = cdm_schema,
         target_database_schema = write_schema,
         results_database_schema = write_schema,
         target_cohort_table = target_cohort_table,
-        target_cohort_id = cohortDefinitionSet$cohortId[i],
+        target_cohort_id = x$cohortId[i],
         warnOnMissingParameters = FALSE
       ) %>%
       SqlRender::translate(
@@ -150,4 +151,4 @@ generateCohortSet <- function(cdm,
     cdm[[cohortTableName]] <- dplyr::tbl(con, dbplyr::in_schema(schema, cohortTableName))
   }
   return(cdm)
-}
+})

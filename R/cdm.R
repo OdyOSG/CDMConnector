@@ -475,3 +475,5 @@ print.cdm_snapshot <- function(x, ...) {
   purrr::walk2(names(x[-1]), x[-1], ~cli::cat_bullet(.x, ": ", .y))
 }
 
+setOldClass("cdm_reference")
+setOldClass("CohortSet")

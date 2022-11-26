@@ -13,5 +13,5 @@ readCohortSet(path)
 A "cohort set" is a collection of cohort definions. In R this is stored in a dataframe with cohortId, cohortName, cohort, and sql columns.
 On disk this is stored as a folder with a CohortsToCreate.csv file and one or more json files.
 If the CohortsToCreate.csv file is missing then all of the json files in the folder will be used,
-cohortIds will be automatically assigned in alphebetical order, and cohortNames will match the file names.
+cohortIds will be automatically assigned in alphabetical order, and cohortNames will match the file names.
 }
