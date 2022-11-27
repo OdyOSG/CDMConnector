@@ -22,10 +22,13 @@ test_that("computePermanent works on duckdb", {
 })
 
 test_that("computePermanent works on Postgres", {
+
+  skip_if(Sys.getenv("CDM5_POSTGRESQL_USER") == "")
+
   con <- DBI::dbConnect(RPostgres::Postgres(),
-                        dbname =   Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
-                        host =     Sys.getenv("CDM5_POSTGRESQL_HOST"),
-                        user =     Sys.getenv("CDM5_POSTGRESQL_USER"),
+                        dbname   = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
+                        host     = Sys.getenv("CDM5_POSTGRESQL_HOST"),
+                        user     = Sys.getenv("CDM5_POSTGRESQL_USER"),
                         password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD"))
 
   newTableName <- paste0(c("temptable", sample(1:9, 7, replace = T)), collapse = "")
@@ -57,6 +60,8 @@ test_that("computePermanent works on Postgres", {
 })
 
 test_that("computePermanent works on SQL Server", {
+
+  skip_if(Sys.getenv("CDM5_SQL_SERVER_USER") == "")
 
   con <- DBI::dbConnect(odbc::odbc(),
                         Driver   = Sys.getenv("SQL_SERVER_DRIVER"),
@@ -96,6 +101,9 @@ test_that("computePermanent works on SQL Server", {
 })
 
 test_that("computePermanent works on Redshift", {
+
+  skip_if(Sys.getenv("CDM5_REDSHIFT_USER") == "")
+
   con <- DBI::dbConnect(RPostgres::Redshift(),
                         dbname   = Sys.getenv("CDM5_REDSHIFT_DBNAME"),
                         host     = Sys.getenv("CDM5_REDSHIFT_HOST"),

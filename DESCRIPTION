@@ -30,7 +30,9 @@ Imports:
     arrow,
     methods,
     withr,
-    lifecycle
+    lifecycle,
+    jsonlite,
+    tibble
 Suggests: 
     covr,
     knitr,

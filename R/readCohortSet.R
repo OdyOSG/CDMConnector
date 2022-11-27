@@ -1,15 +1,16 @@
 
 # Temporarily add this function to CDMConnector
 
-#' Read a set of cohort definitons into R
+#' Read a set of cohort definitions into R
 #'
-#' A "cohort set" is a collection of cohort definions. In R this is stored in a dataframe with cohortId, cohortName, cohort, and sql columns.
+#' A "cohort set" is a collection of cohort definitions. In R this is stored in a dataframe with cohortId, cohortName, cohort, and sql columns.
 #' On disk this is stored as a folder with a CohortsToCreate.csv file and one or more json files.
 #' If the CohortsToCreate.csv file is missing then all of the json files in the folder will be used,
 #' cohortIds will be automatically assigned in alphabetical order, and cohortNames will match the file names.
 #'
 #' @param path The path to a folder containing a csv file named CohortsToCreate.csv with columns cohortId, cohortName, and jsonPath.
-#'
+#' @importFrom jsonlite read_json
+#' @importFrom tibble tibble
 #' @export
 readCohortSet <- function(path) {
   if (!rlang::is_installed("CirceR")) {
@@ -18,7 +19,7 @@ readCohortSet <- function(path) {
 
   if (file.exists(file.path(path, "CohortsToCreate.csv"))) {
     cohortsToCreate <- readr::read_csv(file.path(path, "CohortsToCreate.csv"), show_col_types = FALSE) %>%
-      dplyr::mutate(sql = NA_character_, cohort = purrr::map(jsonPath, jsonlite::read_json))
+      dplyr::mutate(sql = NA_character_, cohort = purrr::map(.data$jsonPath, jsonlite::read_json))
   } else {
     jsonFiles <- sort(list.files(path, pattern = "\\.json$", full.names = TRUE))
     cohortsToCreate <- tibble::tibble(
@@ -26,7 +27,7 @@ readCohortSet <- function(path) {
       cohortName = tools::file_path_sans_ext(basename(jsonFiles)),
       jsonPath = jsonFiles
     ) %>%
-      dplyr::mutate(sql = NA_character_, cohort = purrr::map(jsonPath, jsonlite::read_json))
+      dplyr::mutate(sql = NA_character_, cohort = purrr::map(.data$jsonPath, jsonlite::read_json))
   }
 
   if (nrow(cohortsToCreate) == 0) return(cohortsToCreate)
@@ -42,8 +43,8 @@ readCohortSet <- function(path) {
     cohortsToCreate$sql[i] <- cohortSql
   }
 
-  cohortsToCreate %>%
-    dplyr::select(.data$cohortId, .data$cohortName, .data$cohort, .data$sql) %>%
-    magrittr::set_class(c("CohortSet", class(.)))
+  cohortsToCreate <- dplyr::select(cohortsToCreate, "cohortId", "cohortName", "cohort", "sql")
+  class(cohortsToCreate) <- c("CohortSet", class(cohortsToCreate))
+  return(cohortsToCreate)
 }
 

@@ -308,7 +308,6 @@ test_that("DatabaseConnector cdm reference works on postgres", {
 
 test_that("DatabaseConnector cdm reference works on redshift", {
   skip_if(Sys.getenv("CDM5_REDSHIFT_USER") == "")
-  # skip("DatabaseConnector does not preserve logical datatypes")
 
   con <- DBI::dbConnect(DatabaseConnector::DatabaseConnectorDriver(),
                         dbms     = "redshift",
@@ -357,13 +356,12 @@ test_that("DatabaseConnector cdm reference works on sql server", {
   # expect_s3_class(snapshot(cdm), "cdm_snapshot")
   # df <- DBI::dbGetQuery(con, "select * from cdmv5.dbo.person")
 
-  debugonce(verify_write_access)
   expect_true(is.null(verify_write_access(con, write_schema = Sys.getenv("CDM5_SQL_SERVER_SCRATCH_SCHEMA"))))
 
-  expect_true("concept" %in% names(cdm))
-  expect_s3_class(collect(head(cdm$concept)), "data.frame")
+  expect_true("person" %in% names(cdm))
+  expect_s3_class(collect(head(cdm$person)), "data.frame")
 
-  expect_equal(dbms(cdm), "redshift")
+  expect_equal(dbms(cdm), "sql server")
 
   DBI::dbDisconnect(con)
 })

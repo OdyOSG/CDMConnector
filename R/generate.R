@@ -10,7 +10,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-setGeneric("generate", function(cdm, x, ...) {stop("No existing generate method.")})
+#' Generate a specification on a CDM
+#'
+#' `generate` is a generic function that accepts a cdm and a specification of an
+#'  analysis or cohort set to be generated.
+#'
+#' @param cdm A cdm reference
+#' @param x A specification of an analysis or cohort set
+#' @param ... Additional parameters passed to methods
+#'
+#' @return A cdm reference with the results tables added
+#' @export
+setGeneric("generate", function(cdm, x, ...) { return(cdm) })
 
 #' Add a cohort table to a cdm object
 #'
@@ -83,6 +94,7 @@ addCohortTable <- function(cdm,
 #'
 #' @param x A cohort definition set dataframe
 #' @param cohortTableName The name of the cohort table in the cdm. Defaults to 'cohort'.
+#' @param overwrite Should the cohort table be overwritten if it already exists? TRUE or FALSE (default).
 #'
 #' @returns cdm reference object with the added cohort table containing generated cohorts
 #'

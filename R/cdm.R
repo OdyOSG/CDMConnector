@@ -459,13 +459,13 @@ snapshot <- function(cdm) {
   dplyr::collect(cdm$cdm_source) %>%
     dplyr::mutate(vocabulary_version = dplyr::coalesce(.env$vocab_version, .data$vocabulary_version)) %>%
     dplyr::mutate(person_cnt = .env$person_cnt, observation_period_cnt = .env$observation_period_cnt) %>%
-    dplyr::select(.data$cdm_source_name,
-                  .data$cdm_version,
-                  .data$cdm_holder,
-                  .data$cdm_release_date,
-                  .data$vocabulary_version,
-                  .data$person_cnt,
-                  .data$observation_period_cnt) %>%
+    dplyr::select("cdm_source_name",
+                  "cdm_version",
+                  "cdm_holder",
+                  "cdm_release_date",
+                  "vocabulary_version",
+                  "person_cnt",
+                  "observation_period_cnt") %>%
     as.list() %>%
     magrittr::set_class("cdm_snapshot")
 }
