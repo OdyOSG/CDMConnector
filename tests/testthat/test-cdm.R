@@ -135,7 +135,7 @@ test_that("cdm reference works on redshift", {
 
 
 test_that("cdm reference works on duckdb", {
-  skip_if(substr(utils::packageVersion("duckdb"), 1, 3) != "0.5")
+  skip_if_not(rlang::is_installed("duckdb", version = "0.6"))
 
   con <- DBI::dbConnect(duckdb::duckdb(), dbdir = eunomia_dir())
 
@@ -156,7 +156,7 @@ test_that("cdm reference works on duckdb", {
 })
 
 test_that("inclusion of cohort tables", {
-  skip_if(substr(utils::packageVersion("duckdb"), 1, 3) != "0.5")
+  skip_if_not(rlang::is_installed("duckdb", version = "0.6"))
 
   con <- DBI::dbConnect(duckdb::duckdb(), dbdir = eunomia_dir())
 
@@ -185,7 +185,7 @@ test_that("inclusion of cohort tables", {
 })
 
 test_that("collect a cdm", {
-  skip_if(substr(utils::packageVersion("duckdb"), 1, 3) != "0.5")
+  skip_if_not(rlang::is_installed("duckdb", version = "0.6"))
 
   con <- DBI::dbConnect(duckdb::duckdb(), dbdir = eunomia_dir())
   cdm <- cdm_from_con(con)
@@ -206,7 +206,7 @@ test_that("collect a cdm", {
 
 
 test_that("stow and cdm_from_files works", {
-  skip_if(substr(utils::packageVersion("duckdb"), 1, 3) != "0.5")
+  skip_if_not(rlang::is_installed("duckdb", version = "0.6"))
 
   save_path <- file.path(tempdir(), paste0("tmp_", paste(sample(letters, 10, replace = TRUE), collapse = "")))
   dir.create(save_path)
@@ -278,7 +278,6 @@ test_that("DatabaseConnector cdm reference works on local postgres", {
 
 test_that("DatabaseConnector cdm reference works on postgres", {
   skip_if(Sys.getenv("CDM5_POSTGRESQL_USER") == "")
-  # skip("DatabaseConnector does not preserve logical datatypes")
 
   con <- DBI::dbConnect(DatabaseConnector::DatabaseConnectorDriver(),
                         dbms     = "postgresql",
@@ -337,8 +336,8 @@ test_that("DatabaseConnector cdm reference works on redshift", {
 
 test_that("DatabaseConnector cdm reference works on sql server", {
   skip_if(Sys.getenv("CDM5_SQL_SERVER_USER") == "")
-  skip("DatabaseConnector does not preserve logical datatypes")
-  skip("sql server test database cdm5.dbo.person does not have birth_datetime")
+  # skip("DatabaseConnector does not preserve logical datatypes")
+  # skip("sql server test database cdm5.dbo.person does not have birth_datetime")
 
   con <- DBI::dbConnect(DatabaseConnector::DatabaseConnectorDriver(),
                         dbms     = "sql server",
@@ -367,7 +366,7 @@ test_that("DatabaseConnector cdm reference works on sql server", {
 })
 
 test_that("autodetect cdm version works", {
-  skip_if(substr(utils::packageVersion("duckdb"), 1, 3) != "0.5")
+  skip_if_not(rlang::is_installed("duckdb", version = "0.6"))
   con <- DBI::dbConnect(duckdb::duckdb(), dbdir = eunomia_dir())
   cdm <- cdm_from_con(con, cdm_tables = tbl_group("default"), cdm_version = "auto")
   expect_true(version(cdm) == c("5.3"))

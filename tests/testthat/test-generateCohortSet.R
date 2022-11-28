@@ -1,6 +1,6 @@
 
 test_that("cohort generation works on duckdb", {
-  skip_if_not_installed("duckdb", "0.5.0")
+  skip_if_not_installed("duckdb", "0.6")
   skip_if_not_installed("CirceR")
 
   con <- DBI::dbConnect(duckdb::duckdb(), eunomia_dir())

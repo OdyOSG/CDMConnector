@@ -37,16 +37,14 @@ Suggests:
     covr,
     knitr,
     rmarkdown,
-    duckdb (>= 0.5.0),
+    duckdb (>= 0.6.0),
     RPostgres,
     odbc,
     ggplot2,
     SqlRender,
     testthat (>= 3.0.0),
     DatabaseConnector,
-    lubridate,
-    CirceR (>= 1.1.1)
+    lubridate
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-Remotes:  
-    github::OHDSI/CirceR
+Additional_repositories: https://OHDSI.github.io/drat

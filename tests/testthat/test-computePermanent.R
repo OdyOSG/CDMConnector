@@ -1,6 +1,9 @@
 
 test_that("computePermanent works on duckdb", {
-  con <- DBI::dbConnect(duckdb::duckdb(), dbdir = CDMConnector::eunomia_dir())
+
+  skip_if_not(rlang::is_installed("duckdb", version = "0.6"))
+
+  con <- DBI::dbConnect(duckdb::duckdb(), dbdir = eunomia_dir())
   concept <- dplyr::tbl(con, "concept")
 
   q <- concept %>%
