@@ -38,9 +38,8 @@ readCohortSet <- function(path) {
     cohortJson <- readr::read_file(cohortsToCreate$jsonPath[i])
     cohortDef <- jsonlite::read_json(cohortsToCreate$jsonPath[i]) # change to Capr::readCohort
 
-    cohortExpression <- do.call("CirceR::cohortExpressionFromJson", list(expressionJson = cohortJson))
-    options <- do.call("CirceR::createGenerateOptions", list(generateStats = FALSE))
-    cohortSql <- do.call("CirceR::buildCohortQuery", list(expression = cohortExpression, options = options))
+    cohortExpression <- eval(parse(text = "CirceR::cohortExpressionFromJson(expressionJson = cohortJson)"))
+    cohortSql <- eval(parse(text = "CirceR::buildCohortQuery(expression = cohortExpression, options = CirceR::createGenerateOptions(generateStats = FALSE))"))
     cohortSql <- SqlRender::render(cohortSql, warnOnMissingParameters = FALSE) # pre-render sql to remove extraneous code
     # cohortsToCreate$json[i] <- cohortJson # any reason to give the user json text strings?
     # cohortsToCreate$cohort[i] <- cohortDef # TODO make this a Capr cohort object
