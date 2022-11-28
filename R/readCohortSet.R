@@ -8,9 +8,11 @@
 #' If the CohortsToCreate.csv file is missing then all of the json files in the folder will be used,
 #' cohortIds will be automatically assigned in alphabetical order, and cohortNames will match the file names.
 #'
-#' @param path The path to a folder containing a csv file named CohortsToCreate.csv with columns cohortId, cohortName, and jsonPath.
+#' @param path The path to a folder containing Circe cohort definition json files
+#' and optionally a csv file named CohortsToCreate.csv with columns cohortId, cohortName, and jsonPath.
 #' @importFrom jsonlite read_json
 #' @importFrom tibble tibble
+#' @importFrom SqlRender render
 #' @export
 readCohortSet <- function(path) {
   if (!rlang::is_installed("CirceR")) {
@@ -35,8 +37,10 @@ readCohortSet <- function(path) {
   for (i in 1:nrow(cohortsToCreate)) {
     cohortJson <- readr::read_file(cohortsToCreate$jsonPath[i])
     cohortDef <- jsonlite::read_json(cohortsToCreate$jsonPath[i]) # change to Capr::readCohort
-    cohortExpression <- CirceR::cohortExpressionFromJson(cohortJson)
-    cohortSql <- CirceR::buildCohortQuery(cohortExpression, options = CirceR::createGenerateOptions(generateStats = FALSE))
+
+    cohortExpression <- do.call("CirceR::cohortExpressionFromJson", list(expressionJson = cohortJson))
+    options <- do.call("CirceR::createGenerateOptions", list(generateStats = FALSE))
+    cohortSql <- do.call("CirceR::buildCohortQuery", list(expression = cohortExpression, options = options))
     cohortSql <- SqlRender::render(cohortSql, warnOnMissingParameters = FALSE) # pre-render sql to remove extraneous code
     # cohortsToCreate$json[i] <- cohortJson # any reason to give the user json text strings?
     # cohortsToCreate$cohort[i] <- cohortDef # TODO make this a Capr cohort object

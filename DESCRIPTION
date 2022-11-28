@@ -32,7 +32,8 @@ Imports:
     withr,
     lifecycle,
     jsonlite,
-    tibble
+    tibble,
+    SqlRender
 Suggests: 
     covr,
     knitr,
@@ -41,10 +42,8 @@ Suggests:
     RPostgres,
     odbc,
     ggplot2,
-    SqlRender,
     testthat (>= 3.0.0),
     DatabaseConnector,
     lubridate
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-Additional_repositories: https://OHDSI.github.io/drat

@@ -7,7 +7,8 @@
 readCohortSet(path)
 }
 \arguments{
-\item{path}{The path to a folder containing a csv file named CohortsToCreate.csv with columns cohortId, cohortName, and jsonPath.}
+\item{path}{The path to a folder containing Circe cohort definition json files
+and optionally a csv file named CohortsToCreate.csv with columns cohortId, cohortName, and jsonPath.}
 }
 \description{
 A "cohort set" is a collection of cohort definitions. In R this is stored in a dataframe with cohortId, cohortName, cohort, and sql columns.

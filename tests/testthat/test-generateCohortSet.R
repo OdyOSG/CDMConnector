@@ -28,7 +28,7 @@ test_that("cohort generation works on duckdb", {
   cdm <- addCohortTable(cdm, name = "cohorts", overwrite = TRUE)
   expect_true("cohorts" %in% names(cdm))
 
-  cdm <- generate(cdm, cohortSet, cohortTableName = "cohorts", overwrite = TRUE)
+  cdm <- generateCohortSet(cdm, cohortSet, cohortTableName = "cohorts", overwrite = TRUE)
   df <- cdm$cohorts %>% head() %>% dplyr::collect()
   expect_s3_class(df, "data.frame")
   expect_true(all(names(df) == c("cohort_definition_id", "subject_id", "cohort_start_date", "cohort_end_date")))
@@ -74,7 +74,7 @@ test_that("cohort generation works on sql server", {
   cdm <- addCohortTable(cdm, name = "cohorts", overwrite = TRUE)
   expect_true("cohorts" %in% names(cdm))
 
-  cdm <- generate(cdm, cohortSet, cohortTableName = "cohorts", overwrite = TRUE)
+  cdm <- generateCohortSet(cdm, cohortSet, cohortTableName = "cohorts", overwrite = TRUE)
   df <- cdm$cohorts %>% head() %>% dplyr::collect()
   expect_s3_class(df, "data.frame")
   expect_true(all(names(df) == c("cohort_definition_id", "subject_id", "cohort_start_date", "cohort_end_date")))
@@ -101,7 +101,7 @@ test_that("cohort generation works on redshift", {
 
   cdm <- cdmFromCon(con,
                     cdmSchema = cdm_schema,
-                    cdmTables = c(tbl_group("default")),
+                    cdmTables = tbl_group("default"),
                     writeSchema = write_schema)
 
   cohortSet <- readCohortSet(system.file("cohorts2", package = "CDMConnector", mustWork = TRUE))
@@ -110,7 +110,7 @@ test_that("cohort generation works on redshift", {
   cdm <- addCohortTable(cdm, name = "cohorts", overwrite = TRUE)
   expect_true("cohorts" %in% names(cdm))
 
-  cdm <- generate(cdm, cohortSet, cohortTableName = "cohorts", overwrite = TRUE)
+  cdm <- generateCohortSet(cdm, cohortSet, cohortTableName = "cohorts", overwrite = TRUE)
   df <- cdm$cohorts %>% head() %>% dplyr::collect()
   expect_s3_class(df, "data.frame")
   expect_true(all(names(df) == c("cohort_definition_id", "subject_id", "cohort_start_date", "cohort_end_date")))
@@ -144,7 +144,7 @@ test_that("cohort generation works on postgres", {
   cdm <- addCohortTable(cdm, name = "cohorts", overwrite = TRUE)
   expect_true("cohorts" %in% names(cdm))
 
-  cdm <- generate(cdm, cohortSet, cohortTableName = "cohorts", overwrite = TRUE)
+  cdm <- generateCohortSet(cdm, cohortSet, cohortTableName = "cohorts", overwrite = TRUE)
   df <- cdm$cohorts %>% head() %>% dplyr::collect()
   expect_s3_class(df, "data.frame")
   expect_true(all(names(df) == c("cohort_definition_id", "subject_id", "cohort_start_date", "cohort_end_date")))
