@@ -25,6 +25,16 @@ cdm_from_con <- function(con, cdm_schema = NULL, cdm_tables = tbl_group("default
   checkmate::assert_character(cohort_tables, null.ok = TRUE, min.len = 1)
   checkmate::assert_choice(cdm_version, choices = c("5.3", "5.4", "auto"))
 
+  # handle schema names like 'schema.dbo'
+  if (!is.null(cdm_schema) && length(cdm_schema) == 1) {
+    cdm_schema <- strsplit(cdm_schema, "\\.")[[1]]
+    checkmate::assert_character(cdm_schema, null.ok = TRUE, min.len = 1, max.len = 2)
+  }
+  if (!is.null(write_schema) && length(write_schema) == 1) {
+    write_schema <- strsplit(write_schema, "\\.")[[1]]
+    checkmate::assert_character(write_schema, null.ok = TRUE, min.len = 1, max.len = 2)
+  }
+
   if (cdm_version == "auto") cdm_version <- detect_cdm_version(con, cdm_schema = cdm_schema)
 
   # tidyselect: https://tidyselect.r-lib.org/articles/tidyselect.html
