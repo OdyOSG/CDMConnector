@@ -1,10 +1,11 @@
 # CDMConnector 0.3.0
 
-* Add computePermanent and appendPermanent function
+* Add computePermanent and appendPermanent functions
 * Add readCohortSet
 * Add generateCohortSet
+* Extract Eunomia dataset so that it is downloaded separately
 
-Released Nov 24, 2022
+Released Nov 29, 2022
 
 # CDMConnector 0.2.0
 
