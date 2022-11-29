@@ -252,7 +252,7 @@ tbl_group <- function(group) {
 #'
 #' @return The full path to the new Eunomia CDM that can be passed to `dbConnect()`
 #' @export
-#' @importFrom utils untar
+#' @importFrom utils untar download.file menu
 #' @examples
 #' \dontrun{
 #' library(DBI)
