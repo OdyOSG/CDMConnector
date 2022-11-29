@@ -263,19 +263,17 @@ tbl_group <- function(group) {
 #' }
 eunomia_dir <- function(exdir = NULL) {
   rlang::check_installed("duckdb", version = "0.6.0", reason = "duckdb version 0.6 is required to use eunomia_dir()")
-  if (!eunomia_is_available()) {
-    if (interactive()) {
-      r <- menu(c("Yes", "No"),
-                title = "Eunomia has not been downloaded yet.\nWould you like to download the Eunomia example CDM dataset?")
-    } else {
-      r <- 1 # Automatically try downloading Eunomia if R is running non-interactively.
-    }
+  if (!eunomia_is_available() && interactive()) {
+    rc <- menu(c("Yes", "No"),
+              title = "Eunomia has not been downloaded yet.\nWould you like to download the Eunomia example CDM dataset?")
+  } else {
+    rc <- 1 # Automatically try downloading Eunomia if R is running non-interactively.
   }
 
-  if (r != 1) rlang::abort("Eunomia dataset is not available")
+  if (rc != 1) rlang::abort("Eunomia dataset is not available")
 
   if (is.null(exdir)) exdir <- file.path(tempdir(TRUE), paste(sample(letters, 8, replace = TRUE), collapse = ""))
-  file <- eunomia_cache()
+  file <- xzfile(eunomia_cache(), open = "rb")
   untar(file, exdir = exdir)
   close(file)
   path <- file.path(exdir, "cdm.duckdb")
@@ -302,7 +300,8 @@ eunomia_cache <- function() {
                   method = "auto")
   }
   if (!eunomia_is_available()) rlang::abort("Error downloading Eunomia dataset.")
-  return(path)
+
+  return(file.path(path, "cdm.duckdb.tar.xz"))
 }
 
 #' @export
