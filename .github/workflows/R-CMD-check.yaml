@@ -57,11 +57,6 @@ jobs:
             install.packages("duckdb", repos = "https://packagemanager.rstudio.com/all/latest", type = "win.binary")
         shell: Rscript {0}
 
-      - name: Download Eunomia data
-        run: |
-           CDMConnector::download_optional_data()
-        shell: Rscript {0}
-
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
