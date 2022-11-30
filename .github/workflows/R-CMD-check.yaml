@@ -60,6 +60,7 @@ jobs:
       - name: Download Eunomia data
         run: |
            CDMConnector::download_optional_data()
+        shell: Rscript {0}
 
       - uses: r-lib/actions/check-r-package@v2
         with:
