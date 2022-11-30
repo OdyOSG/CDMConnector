@@ -243,7 +243,6 @@ tbl_group <- function(group) {
   purrr::map(group, ~spec[spec[[paste0("group_", .)]], ]$cdmTableName) %>% unlist() %>% unique()
 }
 
-
 #' Get the database management system (dbms) from a cdm_reference or DBI connection
 #'
 #' @param con A DBI connection or cdm_reference
