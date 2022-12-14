@@ -60,7 +60,7 @@ cdm_from_con <- function(con, cdm_schema = NULL, cdm_tables = tbl_group("default
   }
 
   if (!is.null(cohort_tables)) {
-    if (dbms(con) == "duckdb") {
+    if (is(con, "duckdb_connection")) {
       ch <- purrr::map(cohort_tables, ~dplyr::tbl(con, paste(c(write_schema, .), collapse = ".")))
     } else if (is.null(write_schema)) {
       rlang::abort("write_schema not specified. Cohort tables must be in write_schema.")
@@ -273,15 +273,21 @@ dbms.cdm_reference <- function(con) {
 dbms.DBIConnection <- function(con) {
   if(!is.null(attr(con, "dbms"))) return(attr(con, "dbms"))
 
-  switch (class(con),
+  result <- switch (class(con),
           'Microsoft SQL Server' = 'sql server',
           'PqConnection' = 'postgresql',
           'RedshiftConnection' = 'redshift',
           'BigQueryConnection' = 'bigquery',
           'SQLiteConnection' = 'sqlite',
-          'duckdb_connection' = 'duckdb'
+          'duckdb_connection' = 'duckdb',
+          'Spark SQL' = 'spark'
           # add mappings from various connection classes to dbms here
   )
+
+  if (is.null(result)) {
+    rlang::abort(glue::glue("{class(con) is not a supported connection type."))
+  }
+  return(result)
 }
 
 #' Collect a list of lazy queries and save the results as files
