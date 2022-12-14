@@ -48,6 +48,8 @@ jobs:
             install.packages("DatabaseConnector")
             install.packages("lubridate")
             install.packages("duckdb")
+            install.packages("covr")
+            install.packages("RPostgres")
         shell: Rscript {0}
 
       - name: Install CirceR
