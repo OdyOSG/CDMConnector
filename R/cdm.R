@@ -373,7 +373,7 @@ cdm_from_files <- function(path, cdm_tables = deprecated(), format = "auto", as_
 #' Create a CDM reference from a folder containing parquet, csv, or feather files
 #'
 #' @param path A folder where an OMOP CDM v5.4 instance is located.
-#' @param cdm_tables deprecated
+#' @param cdmTables deprecated
 #' @param format What is the file format to be read in? Must be "auto" (default), "parquet", "csv", "feather".
 #' @param as_data_frame TRUE (default) will read files into R as dataframes. FALSE will read files into R as Arrow Datasets.
 #' @return A list of dplyr database table references pointing to CDM tables

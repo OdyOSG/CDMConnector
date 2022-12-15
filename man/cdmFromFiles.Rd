@@ -14,11 +14,11 @@ cdmFromFiles(
 \arguments{
 \item{path}{A folder where an OMOP CDM v5.4 instance is located.}
 
+\item{cdmTables}{deprecated}
+
 \item{format}{What is the file format to be read in? Must be "auto" (default), "parquet", "csv", "feather".}
 
 \item{as_data_frame}{TRUE (default) will read files into R as dataframes. FALSE will read files into R as Arrow Datasets.}
-
-\item{cdm_tables}{deprecated}
 }
 \value{
 A list of dplyr database table references pointing to CDM tables
