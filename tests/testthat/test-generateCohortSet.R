@@ -158,7 +158,7 @@ test_that("cohort generation works on postgres", {
 test_that("cohort generation works on spark", {
 
   skip_if_not("Databricks" %in% odbc::odbcListDataSources()$name)
-  # skip("Only run this test manually")
+  skip("Only run this test manually")
   skip_if_not_installed("CirceR")
 
   con <- DBI::dbConnect(odbc::odbc(), dsn = "Databricks")

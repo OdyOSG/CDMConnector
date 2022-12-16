@@ -135,7 +135,7 @@ test_that("cdm reference works on redshift", {
 test_that("cdm reference works on spark", {
 
   skip_if_not("Databricks" %in% odbc::odbcListDataSources()$name)
-  # skip("Only run this test manually")
+  skip("Only run this test manually")
 
   con <- DBI::dbConnect(odbc::odbc(), dsn = "Databricks")
 

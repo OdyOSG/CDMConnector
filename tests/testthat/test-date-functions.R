@@ -189,6 +189,7 @@ test_that("Date functions work on Redshift", {
 test_that("Date functions work on spark", {
 
   skip_if_not("Databricks" %in% odbc::odbcListDataSources()$name)
+  skip("only run test manually")
 
   con <- DBI::dbConnect(odbc::odbc(), "Databricks", bigint = "numeric")
 
@@ -199,8 +200,7 @@ test_that("Date functions work on spark", {
     dplyr::mutate(date2 = !!dateadd("date1", 1, interval = "year")) %>%
     dplyr::mutate(dif_years = !!datediff("date1", "date2", interval = "year")) %>%
     dplyr::mutate(dif_days = !!datediff("date1", "date2", interval = "day")) %>%
-    sparklyr:::compute.tbl_spark("tmp")
-    compute("tmp")
+    dplyr::collect()
 
   expect_equal(lubridate::interval(df$date1, df$date2) / lubridate::years(1), 1)
 
