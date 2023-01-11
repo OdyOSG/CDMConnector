@@ -290,13 +290,9 @@ test_that("Date functions work on Spark", {
       as.character(.data$y), "-",
       as.character(.data$m), "-",
       as.character(.data$d)
-    ))) %>% #dbplyr::sql_render()
+    ))) %>%
     dplyr::collect()
 
-  # sql <- "SELECT *,
-  # TO_DATE(CONCAT_WS('', CAST(`y` AS STRING), '/', CAST(`m` AS STRING), '/', CAST(`d` AS STRING))) AS `date_from_parts` FROM `omop531results`.`tmpdate`"
-  # df <- DBI::dbGetQuery(con, sql)
-  # tibble::tibble(df)
   expect_equal(as.Date(df$date_from_parts), as.Date("2000-10-11"))
   DBI::dbRemoveTable(con, DBI::SQL("omop531results.tmpdate2"))
   DBI::dbDisconnect(con)
