@@ -121,12 +121,12 @@ asDate <- function(x) {
   .data <- get(".", envir = parent.frame())
   dialect <- CDMConnector::dbms(.data$src$con)
 
-  if (dialect == "oracle") {
+  if (dialect %in% c("oracle", "spark")) {
     x <- dbplyr::partial_eval(x_quo, data = .data)
     x <- dbplyr::translate_sql(!!x, con = .data$src$con)
-    x <- glue::glue("TO_DATE({x}, 'YYYY/MM/DD')")
+    x <- glue::glue("TO_DATE({x}, 'yyyy-MM-dd')")
     return(dplyr::sql(x))
   } else {
-    return(rlang::expr(as.Date(!!x)))
+    return(rlang::expr(as.Date(!!x_quo)))
   }
 }

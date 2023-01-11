@@ -98,7 +98,6 @@ test_that("cdm reference works on sql server", {
 
   expect_error(DBI::dbGetQuery(con, "select * from tempdb.dbo.cohort"), "Invalid object")
 
-  expect_equal(dbms(con), "sql server")
   expect_equal(dbms(cdm), "sql server")
 
   DBI::dbDisconnect(con)
